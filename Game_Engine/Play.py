@@ -8,9 +8,6 @@ def play_game():
     players = [p1, p2]
     game = Game(players)
 
-    for player in players:
-        player.game = game
-
     game.play()
 
 

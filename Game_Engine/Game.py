@@ -5,6 +5,8 @@ class Game:
 
     def __init__(self, players):
         self.players = players
+        for player in players:
+            player.game = self
         self.turn_count = 0
         self.game_ended = False
         self.winner: Player = None
