@@ -20,6 +20,10 @@ class Player(ABC):
         :return: True if playable, False if game lost and no action to take
         """
         pass
+    
+    def reset(self):
+        self.hands = [1, 1]
+        self.lost = False
 
     def hit(self, opponent, my_hand: int, opp_hand: int):
         """

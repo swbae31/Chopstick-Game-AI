@@ -1,10 +1,10 @@
-from Player import Player
+from src.Game_Engine.Player import Player
 
 HIT_ACTION = "HIT"
 SPLIT_ACTION = "SPLIT"
 
 
-class HumanPlayer(Player):
+class RandomPlayer(Player):
     """
     Human Player Class
     """

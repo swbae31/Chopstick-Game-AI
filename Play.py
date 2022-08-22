@@ -1,5 +1,6 @@
-from Game import Game
-from HumanPlayer import HumanPlayer
+from src.Game_Engine.Game import Game
+from src.Game_Engine.HumanPlayer import HumanPlayer
+from src.AI_Player.RandomPlayer import RandomPlayer
 
 
 def play_game():

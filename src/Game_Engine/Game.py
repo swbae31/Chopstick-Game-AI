@@ -1,4 +1,4 @@
-import Player
+from src.Game_Engine.Player import Player
 
 
 class Game:
@@ -7,9 +7,15 @@ class Game:
         self.players = players
         for player in players:
             player.game = self
+        
+        self.reset()
+      
+    def reset(self):
+        for player in self.players:
+            player.reset()
         self.turn_count = 0
         self.game_ended = False
-        self.winner: Player = None
+        self.winner = None
 
     def play(self):
         """
