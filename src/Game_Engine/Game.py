@@ -1,67 +1,120 @@
-from src.Game_Engine.Player import Player
+HIT_ACTION = "HIT"
+SPLIT_ACTION = "SPLIT"
 
 
 class Game:
 
-    def __init__(self, players):
+    def __init__(self, players, verbose=True):
+        self.is_verbose = verbose
         self.players = players
+        self.turn_count = 1
+        self.winner = None
+        # Round robins all players for turns
+        self.current_player_index = 0
         for player in players:
             player.game = self
-        
-        self.reset()
-      
+
     def reset(self):
         for player in self.players:
             player.reset()
         self.turn_count = 0
-        self.game_ended = False
         self.winner = None
+        self.current_player_index = 0
 
     def play(self):
         """
         Starts Game
-        :return: None
+        :return: Winner player name, None if tie
         """
         self.print_board()
-        while not self.game_ended:
+        while not self.determine_game_ended():
             self.process_turn()
-            if self.determine_game_ended():
-                self.game_ended = True
-                break
-        print(f"Game ended! Winner of the game is {self.winner.name}!")
+        self.verbose_print(f"Game ended! Winner of the game is {self.winner.name}!")
+        return self.winner.name
 
     def process_turn(self):
         """
         Process a turn. Receive input from human players.
-        :return: True if game ended, False if game did not end
         """
+        current_player = self.get_current_player()
+        self.verbose_print(f"{current_player.name}'s turn:")
+        current_player.play_turn()
+        self.current_player_index = (self.current_player_index + 1) % len(self.players)
         self.turn_count += 1
-        for player in self.players:
-            print(f"{player.name}'s turn:")
-            if not player.lost:
-                player.play_turn()
-                self.print_board()
+        self.print_board()
 
     def print_board(self):
         """
         Prints Board
         :return: None
         """
-        print(f"Turn: {self.turn_count}\n")
+        self.verbose_print(f"Turn: {self.turn_count}\n")
         for player in self.players:
-            print(f"Player {player.name}")
-            print(f"Alive: {not player.lost}, Hands: {player.hands}\n")
+            self.verbose_print(f"Player {player.name} {type(player).__name__}")
+            self.verbose_print(f"Alive: {not player.lost}, Hands: {player.hands}\n")
 
     def determine_game_ended(self):
         """
         Determines if game has ended, set winner if game has ended
         :return: True if game ended, False if not
         """
-        alive_players = []
-        for player in self.players:
-            if not player.lost:
-                alive_players.append(player)
+        alive_players = [player for player in self.players if player.lost is False]
         if len(alive_players) == 1:
             self.winner = alive_players[0]
             return True
         return False
+
+    def get_game_state(self):
+        """
+        Return game state. [CurrentPlayer hand 1, Current player hand 2, other player hand 1, other player hand 2]
+        example: [1, 1, 1, 1] at start of game
+        """
+        game_state = []
+        current_player = self.get_current_player()
+        game_state.extend(current_player.hands)
+
+        for player in self.players:
+            if player == current_player:
+                continue
+            game_state.extend(player.hands)
+        return game_state
+
+    def get_current_available_actions(self):
+        """
+        Return list of all available action from current state.
+        """
+        actions = []
+        current_player = self.get_current_player()
+        # Valid hit src hand with more than 0 fingers
+        hit_src = [i for i in range(len(current_player.hands)) if current_player.hands[i] != 0]
+        # Hit actions
+        for player in self.players:
+            if player == current_player:
+                continue
+            for hit_hand_index in hit_src:
+                for j, hit_dst in enumerate(player.hands):
+                    if hit_dst == 0:
+                        continue
+                    actions.append(f"{HIT_ACTION}_{hit_hand_index}{j}")
+
+        # Split actions
+        finger_sum = sum(current_player.hands)
+        for i in range(finger_sum + 1):
+            left = i
+            right = finger_sum - i
+            # Invalid split with more than 5 fingers
+            if left >= 5 or right >= 5:
+                continue
+            # Invalid split with same hand state (no switching allowed)
+            if [left, right] == current_player.hands or [right, left] == current_player.hands:
+                continue
+            actions.append(f"{SPLIT_ACTION}_{left}{right}")
+
+        return actions
+
+    def get_current_player(self):
+        return self.players[self.current_player_index]
+
+    def verbose_print(self, string):
+        if self.is_verbose:
+            print(string)

@@ -1,7 +1,5 @@
 from src.Game_Engine.Player import Player
-
-HIT_ACTION = "HIT"
-SPLIT_ACTION = "SPLIT"
+from src.Game_Engine.Game import HIT_ACTION, SPLIT_ACTION
 
 
 class HumanPlayer(Player):
@@ -28,7 +26,7 @@ class HumanPlayer(Player):
                     # TODO: add opponent name for input for multiple players
                     my_hand, opp_hand = \
                         input("Enter hand to hit with (0 or 1) and hand to hit (0 or 1). Sample: 0, 1\n").split(",")
-                    opponent = [p for p in self.game.players if p != self][0]
+                    opponent = self.get_opponent()
                     self.hit(opponent, int(my_hand), int(opp_hand))
 
                 elif action == SPLIT_ACTION:

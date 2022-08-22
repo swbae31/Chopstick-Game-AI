@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from src.Game_Engine.Game import HIT_ACTION, SPLIT_ACTION
 
 
 class Player(ABC):
@@ -65,13 +66,21 @@ class Player(ABC):
         Update self player state after being hit
         :return:
         """
-        lost = True
         for i in range(len(self.hands)):
             if self.hands[i] >= 5:
                 self.hands[i] = 0
 
-            # Lost if all hands are 0
-            if self.hands[i] > 0:
-                lost = False
-        if lost:
+        # If all hand is 0, lost
+        if sum(self.hands) == 0:
             self.lost = True
+
+    def get_opponent(self):
+        return [p for p in self.game.players if p != self][0]
+
+    def perform_action_string(self, action_string):
+        action_type, params = action_string.split('_')
+        if action_type == HIT_ACTION:
+            opponent = self.get_opponent()
+            self.hit(opponent, int(params[0]), int(params[1]))
+        elif action_type == SPLIT_ACTION:
+            self.split([int(params[0]), int(params[1])])
