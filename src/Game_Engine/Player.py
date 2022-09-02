@@ -26,6 +26,9 @@ class Player(ABC):
         self.hands = [1, 1]
         self.lost = False
 
+    def load(self, hands):
+        self.hands = hands
+
     def hit(self, opponent, my_hand: int, opp_hand: int):
         """
         Action: hit another player's hand with my hand to add fingers

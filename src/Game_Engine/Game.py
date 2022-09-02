@@ -21,6 +21,17 @@ class Game:
         self.winner = None
         self.current_player_index = 0
 
+    def load(self, game_state, turn_count=0):
+        """
+        Loads the game with the game_state and turn count
+        """
+        self.reset()
+        self.turn_count = turn_count
+        index = 0
+        for player in self.players:
+            player.load([game_state[index], game_state[index]])
+            index += len(player.hands)
+
     def play(self):
         """
         Starts Game
