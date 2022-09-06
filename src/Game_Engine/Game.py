@@ -13,11 +13,12 @@ class Game:
         self.current_player_index = 0
         for player in players:
             player.game = self
+            player.pregame_prep()
 
     def reset(self):
         for player in self.players:
             player.reset()
-        self.turn_count = 0
+        self.turn_count = 1
         self.winner = None
         self.current_player_index = 0
 
@@ -29,7 +30,7 @@ class Game:
         self.turn_count = turn_count
         index = 0
         for player in self.players:
-            player.load([game_state[index], game_state[index]])
+            player.load([game_state[index], game_state[index+1]])
             index += len(player.hands)
 
     def play(self):
@@ -77,8 +78,8 @@ class Game:
 
     def get_game_state(self):
         """
-        Return game state. [CurrentPlayer hand 1, Current player hand 2, other player hand 1, other player hand 2]
-        example: [1, 1, 1, 1] at start of game
+        Return game state as tuple. (CurrentPlayer hand 1, Current player hand 2, other player hand 1, other player hand 2)
+        example: (1, 1, 1, 1) at start of game
         """
         game_state = []
         current_player = self.get_current_player()
@@ -88,7 +89,7 @@ class Game:
             if player == current_player:
                 continue
             game_state.extend(player.hands)
-        return game_state
+        return tuple(game_state)
 
     def get_current_available_actions(self):
         """

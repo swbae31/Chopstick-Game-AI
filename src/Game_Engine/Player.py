@@ -14,6 +14,12 @@ class Player(ABC):
         self.lost = False
         self.game = None
 
+    def pregame_prep(self):
+        """
+        Run any pregame preparation sequences.
+        """
+        pass
+
     @abstractmethod
     def play_turn(self):
         """
@@ -28,6 +34,7 @@ class Player(ABC):
 
     def load(self, hands):
         self.hands = hands
+        self.update_state()
 
     def hit(self, opponent, my_hand: int, opp_hand: int):
         """
