@@ -12,12 +12,12 @@ class DpPlayer(Player):
     # Static class variables Model and QValue
     # Key: Non-terminal State tuple
     # Value: List of tuples (action, next state, reward of next state)
-    # Total of 577 non-terminal states d
+    # Total of 577 non-terminal states
     model = {}
     # Key: (state tuple, action)
     # Value: Iterated value using DP
     # Total 2560 state-action pairs
-    # Converges to optimal solution in 20 value iteration
+    # Converges to optimal solution in 20 iterations
     q_value = {}
 
     def __init__(self, name):
