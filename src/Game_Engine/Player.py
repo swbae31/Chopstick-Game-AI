@@ -14,9 +14,9 @@ class Player(ABC):
         self.lost = False
         self.game = None
 
-    def pregame_prep(self):
+    def train(self):
         """
-        Run any pregame preparation sequences.
+        Train the player if needed.
         """
         pass
 
