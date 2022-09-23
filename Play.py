@@ -4,13 +4,14 @@ from src.AI_Player.DpPlayer import DpPlayer
 from src.AI_Player.RandomPlayer import RandomPlayer
 from collections import defaultdict
 
+
 def play_game():
-    p1 = DpPlayer("DP")
-    p2 = RandomPlayer("Random")
+    p1 = DpPlayer("DP1")
+    p2 = DpPlayer("DP2")
     players = [p1, p2]
     game = Game(players, verbose=False)
 
-    wins = {}
+    wins = dict()
     wins[p1.name] = 0
     wins[p2.name] = 0
 
@@ -23,7 +24,7 @@ def play_game():
         game.reset()
 
     print(wins)
-    print(turns)
+    print(sorted(turns.items()))
 
 
 if __name__ == "__main__":

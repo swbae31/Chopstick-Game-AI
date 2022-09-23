@@ -13,7 +13,7 @@ class Game:
         self.current_player_index = 0
         for player in players:
             player.game = self
-            player.pregame_prep()
+            player.train()
 
     def reset(self):
         for player in self.players:

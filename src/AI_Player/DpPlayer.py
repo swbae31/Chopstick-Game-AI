@@ -22,9 +22,8 @@ class DpPlayer(Player):
 
     def __init__(self, name):
         Player.__init__(self, name)
-        
 
-    def pregame_prep(self):
+    def train(self):
         """
         1) Builds model from game engine if not loaded
         2) Builds q function using bellmen optimallity equation if not loaded
@@ -44,7 +43,7 @@ class DpPlayer(Player):
         Model's Input: Game State
         Output: List of available (action, next state, reward)
         """        
-        # Assume that this will be called at begining of game
+        # Assume that this will be called at beginning of game
         # Build the model. Assume only 2 hands with 5 fingers each
         for i in range(5):
             for j in range(5):
