@@ -1,5 +1,6 @@
 HIT_ACTION = "HIT"
 SPLIT_ACTION = "SPLIT"
+TIE_RESULT = "TIE"
 
 
 class Game:
@@ -22,6 +23,9 @@ class Game:
         self.winner = None
         self.current_player_index = 0
 
+    def switch_player_order(self):
+        self.players = self.players[::-1]
+
     def load(self, game_state, turn_count=0):
         """
         Loads the game with the game_state and turn count
@@ -41,8 +45,15 @@ class Game:
         self.print_board()
         while not self.determine_game_ended():
             self.process_turn()
-        self.verbose_print(f"Game ended! Winner of the game is {self.winner.name}!")
-        return self.winner.name
+
+        if self.winner:
+            winner_name = self.winner.name
+        else:
+            winner_name = TIE_RESULT
+
+        self.verbose_print(f"Game ended! Winner of the game is {winner_name}!")
+
+        return winner_name
 
     def process_turn(self):
         """
@@ -73,6 +84,10 @@ class Game:
         alive_players = [player for player in self.players if player.lost is False]
         if len(alive_players) == 1:
             self.winner = alive_players[0]
+            return True
+        # If turn count is 200, consider it a tie
+        if self.turn_count >= 200:
+            self.winner == None
             return True
         return False
 

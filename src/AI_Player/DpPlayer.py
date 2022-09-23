@@ -71,7 +71,8 @@ class DpPlayer(Player):
             if game.determine_game_ended():
                 if p1 == game.winner:
                     reward = 1
-                else:
+                # The other player won, not a tie
+                elif game.winner != None:
                     reward = -1
             self.model[state].append((action, next_state, reward))
 

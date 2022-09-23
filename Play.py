@@ -2,19 +2,17 @@ from src.Game_Engine.Game import Game
 from src.Game_Engine.HumanPlayer import HumanPlayer
 from src.AI_Player.DpPlayer import DpPlayer
 from src.AI_Player.RandomPlayer import RandomPlayer
+from src.AI_Player.QLearningPlayer import QLearningPlayer
 from collections import defaultdict
 
 
 def play_game():
-    p1 = DpPlayer("DP1")
-    p2 = DpPlayer("DP2")
+    p1 = QLearningPlayer("Q")
+    p2 = RandomPlayer("Random")
     players = [p1, p2]
     game = Game(players, verbose=False)
 
-    wins = dict()
-    wins[p1.name] = 0
-    wins[p2.name] = 0
-
+    wins = defaultdict(int)
     turns = defaultdict(int)
 
     for i in range(100):
@@ -22,6 +20,8 @@ def play_game():
         wins[winner] += 1
         turns[game.turn_count] += 1
         game.reset()
+        # Swap order to play fair game, going second has unwinnable advantage
+        game.switch_player_order()
 
     print(wins)
     print(sorted(turns.items()))
