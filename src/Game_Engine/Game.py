@@ -14,7 +14,6 @@ class Game:
         self.current_player_index = 0
         for player in players:
             player.game = self
-            player.train()
 
     def reset(self):
         for player in self.players:
@@ -42,6 +41,7 @@ class Game:
         Starts Game
         :return: Winner player name, None if tie
         """
+        self.reset()
         self.print_board()
         while not self.determine_game_ended():
             self.process_turn()
@@ -85,9 +85,8 @@ class Game:
         if len(alive_players) == 1:
             self.winner = alive_players[0]
             return True
-        # If turn count is 200, consider it a tie
+        # If turn count is 200, consider it a tie, self.winner is None
         if self.turn_count >= 200:
-            self.winner == None
             return True
         return False
 

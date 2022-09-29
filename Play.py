@@ -8,22 +8,25 @@ from collections import defaultdict
 
 def play_game():
     p1 = QLearningPlayer("Q")
-    p2 = RandomPlayer("Random")
+    p2 = DpPlayer("dp")
+    p1.train()
+    p2.train()
     players = [p1, p2]
     game = Game(players, verbose=False)
 
     wins = defaultdict(int)
     turns = defaultdict(int)
 
-    for i in range(100):
+    play_count = 10000
+    for i in range(play_count):
         winner = game.play()
         wins[winner] += 1
         turns[game.turn_count] += 1
-        game.reset()
-        # Swap order to play fair game, going second has unwinnable advantage
+        # Swap order to play fair game, going second has absolute advantage
         game.switch_player_order()
 
     print(wins)
+    print(f"P1 Win rate: {wins[p1.name]/play_count*100}")
     print(sorted(turns.items()))
 
 

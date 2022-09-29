@@ -1,61 +1,58 @@
 from src.Game_Engine.Player import Player
 from src.Game_Engine.Game import Game
+from src.AI_Player.DpPlayer import DpPlayer
+from src.AI_Player.RandomPlayer import RandomPlayer
 from random import choice, uniform
 from collections import defaultdict
+import time
+import matplotlib.pyplot as plt
+
 
 class QLearningPlayer(Player):
     """
     Q Learning Player Class
-    Trains using Q learning with 1 look ahead
+    Trains using Q learning with 1 look ahead TD(0)
     """
-
-    # Centralized q function shared by agents
-    # Key: (state tuple, action)
-    # Value: Estimated q value
-    q_value = None
-    # Exploration Epsilon for training
-    exploration_epsilon = None
-
-    def __init__(self, name, training_mode = False):
+    def __init__(self, name):
         # hands[0] is left hand, hands[1] is right hand
         Player.__init__(self, name)
-        self.training_mode = training_mode
         self.last_state = None
-        self.last_action = None        
+        self.last_action = None
+        # Key: (state tuple, action)
+        # Value: Estimated q value
+        self.q_value = None
+        self.exploration_epsilon = None
+        # Training mode to enable epsilon greedy policy
+        self.training_mode = False
 
-    def train(self):
+    def train(self, epochs=10000, learning_rate=0.001, discount_factor=0.9, init_epsilon=1.0, min_epsilon=0.01, decay=0.999):
         """
         Train the Q function by simulating games with itself
         After learning is done, use greedy policy using the q function to make decisions
         """
-
-        # Don't train if already trained
-        if QLearningPlayer.q_value:
-            return
-        # Don't recursively train if already in training mode
-        if self.training_mode:
-            return
-
+        start = time.perf_counter()
         # 0) Init training vars
         # Init default q value to be 0
-        QLearningPlayer.q_value = defaultdict(int)
-        episodes = 10000
-        learning_rate = 0.1
-        discount_factor = 0.9
-        QLearningPlayer.exploration_epsilon = 0.1
-
+        self.q_value = defaultdict(int)
+        self.training_mode = True
+        main_game = self.game
         # 1) Initialize game
-        p1 = QLearningPlayer("q1", training_mode=True)
-        p2 = QLearningPlayer("q2", training_mode=True)
+        p1 = self
+        # Copy of self which shares the q value
+        p2 = QLearningPlayer('self copy')
+        p2.training_mode = True
+        self.exploration_epsilon = p2.exploration_epsilon = init_epsilon
+        p2.q_value = self.q_value
         players = [p1, p2]
         game = Game(players, verbose=False)
-
+        average_turns = 0
         # Train for episodes
-        for _ in range(episodes):
+        epsilons = []
+        for _ in range(epochs):
             game.reset()
             
             # Loop until episode ends
-            while game.determine_game_ended() == False:
+            while not game.determine_game_ended():
                 current_player = game.get_current_player()
                 game.process_turn()
                 s1 = current_player.last_state
@@ -64,15 +61,26 @@ class QLearningPlayer(Player):
 
                 reward = 0
                 if game.determine_game_ended():
-                    if current_player == game.winner:
-                        reward = 1
-                    # The other player won, not a tie
-                    elif game.winner != None:
-                        reward = -1
-                # Negative value since zero sum game.
-                next_state_q_value = self.__policy(s2)[1] * -1
-                QLearningPlayer.q_value[(s1, a1)] = QLearningPlayer.q_value[(s1, a1)] + learning_rate *(reward + discount_factor * next_state_q_value - QLearningPlayer.q_value[(s1, a1)])
-        
+                    # Game ended, won game
+                    reward = 100
+                    # Terminal state q value is always 0
+                    next_state_q_value = 0
+                else:
+                    # Negative value since zero sum game.
+                    next_state_q_value = self.__policy(s2)[1] * -1
+
+                self.q_value[(s1, a1)] = self.q_value[(s1, a1)] + learning_rate * (reward + discount_factor * next_state_q_value - self.q_value[(s1, a1)])
+            p1.exploration_epsilon = p2.exploration_epsilon = max(p1.exploration_epsilon * decay, min_epsilon)
+            epsilons.append(p1.exploration_epsilon)
+            average_turns += game.turn_count
+        # Set game back
+        self.game = main_game
+        # Perf
+        print("Training took: " + str(time.perf_counter()-start) + " seconds")
+        print("Average turn per episode " + str(average_turns/epochs))
+        #plt.plot(epsilons)
+        #plt.show()
+
     def __policy(self, state):
         """
         Given a state, return the greedy action by the q function
@@ -82,7 +90,7 @@ class QLearningPlayer(Player):
         best_action = None
         best_value = float('-inf')
         for action in available_actions:
-            cur_value = QLearningPlayer.q_value[(state, action)]
+            cur_value = self.q_value[(state, action)]
             if cur_value > best_value:
                 best_action = action
                 best_value = cur_value
@@ -112,14 +120,14 @@ class QLearningPlayer(Player):
         action = None
         state = self.game.get_game_state()
         # Greedy Policy
-        if self.training_mode == False:
+        if not self.training_mode:
             action, _ = self.__policy(state)
         # Epsilon Greedy policy for training
         else:
             action = self.__training_policy(state)
             # Save last state and action for training
-            self.last_state = state
-            self.last_action = action
+        self.last_state = state
+        self.last_action = action
 
         self.perform_action_string(action)
 

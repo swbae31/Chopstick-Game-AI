@@ -2,6 +2,7 @@ from src.Game_Engine.Player import Player
 from src.Game_Engine.Game import Game
 import math
 
+
 class DpPlayer(Player):
     """
     AI DP Player Class
@@ -29,7 +30,7 @@ class DpPlayer(Player):
         2) Builds q function using bellmen optimallity equation if not loaded
         3) Follows a greedy policy to maximize value using q function
         """
-        if not self.model or not self.q_value:
+        if not DpPlayer.model or not DpPlayer.q_value:
             self.__build_model()
             self.__value_iteration()
 
@@ -43,23 +44,25 @@ class DpPlayer(Player):
         Model's Input: Game State
         Output: List of available (action, next state, reward)
         """        
-        # Assume that this will be called at beginning of game
         # Build the model. Assume only 2 hands with 5 fingers each
+        p1 = DpPlayer("dp1")
+        p2 = DpPlayer("dp2")
+        players = [p1, p2]
+        training_game = Game(players, verbose=False)
+
         for i in range(5):
             for j in range(5):
                 for k in range(5):
                     for l in range(5):
-                        self.__build_model_for_state((i, j, k, l))
-        self.game.reset()
+                        self.__build_model_for_state(training_game, (i, j, k, l))
 
-    def __build_model_for_state(self, state):
-        game = self.game
+    def __build_model_for_state(self, game, state):
         game.load(state)
         # Don't add to model if it is terminal state
         if game.determine_game_ended():
             return
         actions = game.get_current_available_actions()
-        self.model[state] = []
+        DpPlayer.model[state] = []
         # Fix p1 to generate model
         p1 = game.players[0]
         for action in actions:
@@ -72,9 +75,9 @@ class DpPlayer(Player):
                 if p1 == game.winner:
                     reward = 1
                 # The other player won, not a tie
-                elif game.winner != None:
+                elif game.winner:
                     reward = -1
-            self.model[state].append((action, next_state, reward))
+            DpPlayer.model[state].append((action, next_state, reward))
 
     def __value_iteration(self):
         """
@@ -82,9 +85,9 @@ class DpPlayer(Player):
         Uses DP to store results in self.q.memo
         """
         # Initialize q_value to 0
-        for state in self.model.keys():
-            for action, _, _ in self.model[state]:
-                self.q_value[(state, action)] = 0
+        for state in DpPlayer.model.keys():
+            for action, _, _ in DpPlayer.model[state]:
+                DpPlayer.q_value[(state, action)] = 0
 
         # Perform Value Iteration, One-Step look ahead iteration
         epsilon = 0.001
@@ -95,9 +98,9 @@ class DpPlayer(Player):
         for iteration in range(1, 101):
             max_delta = 0
             # For all states
-            for state in self.model.keys():
+            for state in DpPlayer.model.keys():
                 # Look ahead once to update value
-                for action, next_state, reward in self.model[state]:
+                for action, next_state, reward in DpPlayer.model[state]:
                     # non-terminal state
                     if reward == 0:
                         # Negative, since the value will be of the opponent
@@ -105,8 +108,8 @@ class DpPlayer(Player):
                     # Terminal state
                     else:
                         cur_value = reward
-                    max_delta = max(max_delta, abs(self.q_value[(state, action)] - cur_value))
-                    self.q_value[(state, action)] = cur_value
+                    max_delta = max(max_delta, abs(DpPlayer.q_value[(state, action)] - cur_value))
+                    DpPlayer.q_value[(state, action)] = cur_value
             
             if max_delta < epsilon:
                 break
@@ -118,8 +121,8 @@ class DpPlayer(Player):
         # Greedy policy using value function estimated by value iteration
         best_action = None
         best_value = float('-inf')
-        for action, _, _ in self.model[state]:
-            cur_value = self.q_value[(state, action)]
+        for action, _, _ in DpPlayer.model[state]:
+            cur_value = DpPlayer.q_value[(state, action)]
             if cur_value > best_value:
                 best_action = action
                 best_value = cur_value
