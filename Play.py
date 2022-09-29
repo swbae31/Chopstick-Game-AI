@@ -7,9 +7,9 @@ from collections import defaultdict
 
 
 def play_game():
-    p1 = QLearningPlayer("Q")
-    p2 = DpPlayer("dp")
-    p1.train()
+    p1 = QLearningPlayer("Q 5000")
+    p2 = DpPlayer("DP")
+    p1.train(epochs=5000)
     p2.train()
     players = [p1, p2]
     game = Game(players, verbose=False)

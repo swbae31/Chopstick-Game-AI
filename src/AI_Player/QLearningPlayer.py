@@ -5,7 +5,7 @@ from src.AI_Player.RandomPlayer import RandomPlayer
 from random import choice, uniform
 from collections import defaultdict
 import time
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 class QLearningPlayer(Player):
@@ -25,17 +25,20 @@ class QLearningPlayer(Player):
         # Training mode to enable epsilon greedy policy
         self.training_mode = False
 
-    def train(self, epochs=10000, learning_rate=0.001, discount_factor=0.9, init_epsilon=1.0, min_epsilon=0.01, decay=0.999):
+    def train(self, epochs=5000, init_learning_rate=0.9, min_learning_rate=0.001, lr_decay=0.9995, discount_factor=0.9, init_epsilon=1.0, min_epsilon=0.01, epsilon_decay=0.999):
         """
         Train the Q function by simulating games with itself
-        After learning is done, use greedy policy using the q function to make decisions
+        After learning is done, use greedy policy using the q function to make decisions.
+        Stably coverges to the near optimal policy with the default hyperparameters. (About 48/52 against optimal dp agent)
         """
+        print("Training q agent " + self.name + "... ")
         start = time.perf_counter()
         # 0) Init training vars
         # Init default q value to be 0
         self.q_value = defaultdict(int)
         self.training_mode = True
         main_game = self.game
+        lr = init_learning_rate
         # 1) Initialize game
         p1 = self
         # Copy of self which shares the q value
@@ -46,9 +49,7 @@ class QLearningPlayer(Player):
         players = [p1, p2]
         game = Game(players, verbose=False)
         average_turns = 0
-        # Train for episodes
-        epsilons = []
-        for _ in range(epochs):
+        for _ in tqdm(range(epochs)):
             game.reset()
             
             # Loop until episode ends
@@ -69,17 +70,16 @@ class QLearningPlayer(Player):
                     # Negative value since zero sum game.
                     next_state_q_value = self.__policy(s2)[1] * -1
 
-                self.q_value[(s1, a1)] = self.q_value[(s1, a1)] + learning_rate * (reward + discount_factor * next_state_q_value - self.q_value[(s1, a1)])
-            p1.exploration_epsilon = p2.exploration_epsilon = max(p1.exploration_epsilon * decay, min_epsilon)
-            epsilons.append(p1.exploration_epsilon)
+                self.q_value[(s1, a1)] = self.q_value[(s1, a1)] + lr * (reward + discount_factor * next_state_q_value - self.q_value[(s1, a1)])
+            # Decay epsilon and learning rate
+            p1.exploration_epsilon = p2.exploration_epsilon = max(p1.exploration_epsilon * epsilon_decay, min_epsilon)
+            lr = max(lr * lr_decay, min_learning_rate)
             average_turns += game.turn_count
         # Set game back
         self.game = main_game
         # Perf
-        print("Training took: " + str(time.perf_counter()-start) + " seconds")
+        print("Q Training took: " + str(time.perf_counter()-start) + " seconds")
         print("Average turn per episode " + str(average_turns/epochs))
-        #plt.plot(epsilons)
-        #plt.show()
 
     def __policy(self, state):
         """
